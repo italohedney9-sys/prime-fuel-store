@@ -7,7 +7,7 @@ on:
       - main
     paths:
       - 'headless/**'
-      - '.github/workflows/build-headless.yml'
+      - '.github/workflows/Build-headless.yml'
   workflow_dispatch:
 
 jobs:
@@ -22,7 +22,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-     - name: Setup Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
