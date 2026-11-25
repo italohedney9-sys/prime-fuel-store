@@ -35,7 +35,8 @@ jobs:
 
       - name: Build storefront
         working-directory: headless
-        run: npm run build
+        run: npm run build  
+        
         env:
           VITE_WIX_CLIENT_ID: ${{ vars.VITE_WIX_CLIENT_ID }}
 
