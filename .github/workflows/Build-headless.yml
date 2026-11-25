@@ -1,3 +1,4 @@
+
 name: Build and Deploy Prime Fuel Preview
 
 on:
@@ -35,10 +36,7 @@ jobs:
 
       - name: Build storefront
         working-directory: headless
-        run: npm run build  
-        
-        env:
-          VITE_WIX_CLIENT_ID: ${{ vars.VITE_WIX_CLIENT_ID }}
+        run: npm run build
 
       - name: Deploy to preview repository
         run: |
