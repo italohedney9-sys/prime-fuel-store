@@ -6,6 +6,12 @@ import { productsV3 } from '@wix/stores';
 const clientId = import.meta.env.VITE_WIX_CLIENT_ID;
 const app = document.querySelector('#app');
 
+const LIST_FIELDS = [
+  'CURRENCY',
+  'PLAIN_DESCRIPTION',
+  'MIN_PRICE_VARIANT'
+];
+
 app.innerHTML = `
   <section class="status">
     <p class="eyebrow">PRIME FUEL STORE</p>
@@ -15,10 +21,22 @@ app.innerHTML = `
   </section>
 `;
 
+function escapeHTML(value) {
+  return String(value ?? '').replace(/[&<>"']/g, char => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;'
+  })[char]);
+}
+
 async function loadProducts() {
+  const status = document.querySelector('#catalog-status');
+  const container = document.querySelector('#products');
+
   if (!clientId) {
-    document.querySelector('#catalog-status').textContent =
-      'Wix Client ID not configured.';
+    status.textContent = 'Wix Client ID not configured.';
     return;
   }
 
@@ -28,26 +46,19 @@ async function loadProducts() {
       auth: OAuthStrategy({ clientId })
     });
 
-    const result = await wixClient.productsV3
-      .queryProducts({
-        filter: { visible: { $eq: true } }
-      })
+    const { items = [] } = await wixClient.productsV3
+      .queryProducts({ fields: LIST_FIELDS })
       .limit(12)
       .find();
 
-    const products = result.items || [];
+    status.textContent = `${items.length} products found`;
 
-    document.querySelector('#catalog-status').textContent =
-      `${products.length} products found`;
-
-    const container = document.querySelector('#products');
-
-    if (!products.length) {
+    if (!items.length) {
       container.textContent = 'No visible products found.';
       return;
     }
 
-    container.innerHTML = products.map(product => {
+    container.innerHTML = items.map(product => {
       const price =
         product.actualPriceRange?.minValue?.formattedAmount || '';
 
@@ -61,19 +72,9 @@ async function loadProducts() {
 
   } catch (error) {
     console.error('Wix catalog error:', error);
-    document.querySelector('#catalog-status').textContent =
+    status.textContent =
       'Could not load products. Check the Wix connection.';
   }
-}
-
-function escapeHTML(value) {
-  return String(value).replace(/[&<>"']/g, char => ({
-    '&': '&amp;',
-    '<': '&lt;',
-    '>': '&gt;',
-    '"': '&quot;',
-    "'": '&#39;'
-  })[char]);
 }
 
 loadProducts();
