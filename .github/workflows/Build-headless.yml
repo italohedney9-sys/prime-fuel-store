@@ -32,6 +32,8 @@ jobs:
 
       - name: Build storefront
         run: npm run build
+        env:
+          VITE_WIX_CLIENT_ID: ${{ vars.VITE_WIX_CLIENT_ID }}
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
