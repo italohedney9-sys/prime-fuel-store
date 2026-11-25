@@ -1,7 +1,5 @@
-import { defineConfig } from 'vite';
+import { defineConfig } from 'vite'
 
 export default defineConfig({
-  base: process.env.GITHUB_ACTIONS === 'true'
-    ? '/Prime-fuel-preview/'
-    : '/',
-});
+  base: '/Prime-fuel-preview/',
+})
