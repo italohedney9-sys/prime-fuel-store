@@ -1,5 +1,4 @@
-
-name: Build Prime Fuel Headless
+name: Build and Deploy Prime Fuel Preview
 
 on:
   push:
@@ -14,13 +13,16 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    defaults:
-      run:
-        working-directory: headless
-
     steps:
-      - name: Checkout repository
+      - name: Checkout main repository
         uses: actions/checkout@v4
+
+      - name: Checkout preview repository
+        uses: actions/checkout@v4
+        with:
+          repository: italohedney9-sys/Prime-fuel-preview
+          token: ${{ secrets.PREVIEW_DEPLOY_TOKEN }}
+          path: preview
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -28,12 +30,26 @@ jobs:
           node-version: 22
 
       - name: Install dependencies
+        working-directory: headless
         run: npm install
 
       - name: Build storefront
+        working-directory: headless
         run: npm run build
         env:
           VITE_WIX_CLIENT_ID: ${{ vars.VITE_WIX_CLIENT_ID }}
+
+      - name: Deploy to preview repository
+        run: |
+          cp -a headless/dist/. preview/
+          cd preview
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if ! git diff --cached --quiet; then
+            git commit -m "Deploy Prime Fuel preview"
+            git push origin main
+          fi
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
