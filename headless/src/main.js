@@ -50,23 +50,39 @@ async function loadProducts() {
     });
 
     const items = response.products || [];
-    status.textContent = `${items.length} products found`;
 
     if (!items.length) {
-      container.textContent = 'No visible products found.';
+      status.textContent = 'No visible products found.';
       return;
     }
 
-    container.innerHTML = items.map(product => {
+    status.textContent = `Loading ${items.length} products...`;
+
+    const cards = await Promise.all(items.map(async product => {
+      let details = product;
+
+      try {
+        const result = await wixClient.products.getProduct(
+          product._id || product.id
+        );
+
+        details = result.product || result;
+      } catch (error) {
+        console.warn('Could not load product details:', product.name, error);
+      }
+
       const price =
+        details.priceData?.formatted?.price ??
         product.priceData?.formatted?.price ??
-        (product.priceData?.price != null
-          ? `${product.priceData.currency || 'USD'} ${product.priceData.price}`
+        (details.priceData?.price != null
+          ? `${details.priceData.currency || 'USD'} ${details.priceData.price}`
           : '');
 
       const imageUrl =
-        product.media?.mainMedia?.image?.url ||
-        product.media?.mainMedia?.thumbnail?.url ||
+        details.media?.mainMedia?.image?.url ||
+        details.media?.mainMedia?.thumbnail?.url ||
+        details.media?.items?.find(item => item.mediaType === 'image')?.image?.url ||
+        details.media?.items?.find(item => item.mediaType === 'image')?.thumbnail?.url ||
         '';
 
       return `
@@ -74,20 +90,23 @@ async function loadProducts() {
           <div class="product-image">
             ${imageUrl
               ? `<img src="${escapeHTML(imageUrl)}"
-                  alt="${escapeHTML(product.name || 'Product')}"
+                  alt="${escapeHTML(details.name || product.name || 'Product')}"
                   loading="lazy">`
               : '<div class="image-placeholder">IMAGE COMING SOON</div>'}
           </div>
           <div class="product-info">
-            <h2>${escapeHTML(product.name || 'Product')}</h2>
+            <h2>${escapeHTML(details.name || product.name || 'Product')}</h2>
             <p class="product-price">${escapeHTML(price)}</p>
           </div>
         </article>
       `;
-    }).join('');
+    }));
+
+    container.innerHTML = cards.join('');
+    status.textContent = `${items.length} products found`;
 
   } catch (error) {
-    console.error('Wix Catalog V1 error:', error);
+    console.error('Wix Catalog error:', error);
     status.textContent = 'Could not load products. Check Wix connection.';
   }
 }
