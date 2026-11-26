@@ -64,20 +64,32 @@ async function loadProducts() {
           ? `${product.priceData.currency || 'USD'} ${product.priceData.price}`
           : '');
 
+      const imageUrl =
+        product.media?.mainMedia?.image?.url ||
+        product.media?.mainMedia?.thumbnail?.url ||
+        '';
+
       return `
         <article class="product">
-          <h2>${escapeHTML(product.name || 'Product')}</h2>
-          <p>${escapeHTML(price)}</p>
+          <div class="product-image">
+            ${imageUrl
+              ? `<img src="${escapeHTML(imageUrl)}"
+                  alt="${escapeHTML(product.name || 'Product')}"
+                  loading="lazy">`
+              : '<div class="image-placeholder">IMAGE COMING SOON</div>'}
+          </div>
+          <div class="product-info">
+            <h2>${escapeHTML(product.name || 'Product')}</h2>
+            <p class="product-price">${escapeHTML(price)}</p>
+          </div>
         </article>
       `;
     }).join('');
 
   } catch (error) {
     console.error('Wix Catalog V1 error:', error);
-    status.textContent =
-      'Could not load products. Check the Wix Catalog V1 connection and app permissions.';
+    status.textContent = 'Could not load products. Check Wix connection.';
   }
 }
 
 loadProducts();
-
